@@ -1,0 +1,26 @@
+# Core backend framework and server
+fastapi
+uvicorn[standard]
+gunicorn
+
+# AI and Machine Learning
+openai
+langchain
+langchain-openai
+transformers
+torch
+pytesseract
+spacy
+
+# Database
+psycopg2-binary  # For PostgreSQL
+pymongo          # For MongoDB
+
+# Authentication and Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Utilities
+python-dotenv
+requests
