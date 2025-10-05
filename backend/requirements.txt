@@ -11,7 +11,8 @@ transformers
 torch
 pytesseract
 spacy
-google-generativeai
+genai
+pillow
 
 # Database
 psycopg2-binary  # For PostgreSQL

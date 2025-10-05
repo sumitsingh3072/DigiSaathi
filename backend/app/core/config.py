@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """
     PROJECT_NAME: str = "DigiSaathi"
     API_V1_STR: str = "/api/v1"
-    GEMINI_API_KEY: str  # Replace with your actual API key or set in .env
+    GEMINI_API_KEY: str 
     model_config = SettingsConfigDict(env_file="C:\\ML_Projects\\DigiSaathi\\backend\\.env", extra="ignore")
 
-settings = Settings()
+settings = Settings()  # type: ignore
