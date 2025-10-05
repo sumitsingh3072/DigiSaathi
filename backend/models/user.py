@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from backend.db.session import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     """
@@ -12,3 +13,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean(), default=True)
+    documents = relationship("Document", back_populates="owner")

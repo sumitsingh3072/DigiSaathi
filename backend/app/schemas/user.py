@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from .document import Document
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str | None = None
@@ -16,6 +17,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
+    documents: list[Document] = []
     
     class Config:
         from_attributes = True
