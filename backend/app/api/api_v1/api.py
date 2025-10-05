@@ -1,0 +1,13 @@
+# backend/api/api_v1/api.py
+
+from fastapi import APIRouter
+from backend.app.api.api_v1.endpoints import health, chat
+
+
+# Create the main router for the v1 API
+api_router = APIRouter()
+
+# Include the health check router
+# All routes from health.py will be included under this main router.
+api_router.include_router(health.router, prefix="/health", tags=["health"])
+api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
