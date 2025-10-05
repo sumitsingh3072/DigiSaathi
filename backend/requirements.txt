@@ -13,6 +13,7 @@ pytesseract
 spacy
 genai
 pillow
+sqlalchemy
 
 # Database
 psycopg2-binary  # For PostgreSQL

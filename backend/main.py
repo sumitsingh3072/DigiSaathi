@@ -1,13 +1,32 @@
 from fastapi import FastAPI
 from backend.app.core.config import settings
 from backend.app.api.api_v1.api import api_router
+from backend.db.session import engine, Base
+from backend.models import user
+
+# ------------------ db initialization ----------------------
+
+def create_db_and_tables():
+    Base.metadata.create_all(bind=engine)
+
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("--- Starting up: Creating database tables ---")
+    create_db_and_tables()
+    print("--- Startup complete ---")
+    yield
+    print("--- Shutting down ---")
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="An AI-Powered Financial Companion for India, designed to enhance digital financial literacy and security.",
-    version="0.1.0",
+    lifespan=lifespan
 )
+
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
 @app.get("/")
 async def read_root():
     """
