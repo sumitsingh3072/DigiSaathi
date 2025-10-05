@@ -2,24 +2,26 @@
 
 from fastapi import APIRouter
 from backend.app.schemas.chat import ChatMessageCreate, ChatMessageResponse
+from backend.app.services.chat_service import generate_gemini_response
 
 router = APIRouter()
 
-@router.post("/", response_model=ChatMessageResponse)
-async def process_chat_message(
-    chat_in: ChatMessageCreate
-):
+@router.post(
+    "/",
+    response_model=ChatMessageResponse,
+    summary="Process a user's chat message",
+    description="Receives a message from the user, sends it to the Gemini AI, and returns the response.",
+)
+async def process_chat_message(chat_in: ChatMessageCreate) -> ChatMessageResponse:
     """
-    Process an incoming chat message.
-
-    This endpoint receives a user's message, and for now, it returns
-    a simple hardcoded response. In the future, this is where the call
-    to the AI agent/LLM will be made.
-
-    - **chat_in**: The incoming chat message data, validated by ChatMessageCreate.
+    Handles the chat request by calling the Gemini service.
     """
-    # Placeholder for AI logic
-    # For now, we'll just echo the message back with a prefix.
-    response_text = f"You said: '{chat_in.message}'. The AI is not connected yet."
-    
-    return {"response": response_text}
+    # 1. Get the user's message from the request body
+    user_message = chat_in.message
+
+    # 2. Call our new service to get the AI's response
+    ai_response = generate_gemini_response(user_message)
+
+    # 3. Return the AI's response in the correct format
+    return ChatMessageResponse(response=ai_response)
+

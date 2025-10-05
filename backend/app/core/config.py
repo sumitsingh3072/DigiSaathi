@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """
     PROJECT_NAME: str = "DigiSaathi"
     API_V1_STR: str = "/api/v1"
-    class Config:
-        env_file = ".env"
-        env_file_encoding = 'utf-8'
+    GEMINI_API_KEY: str  # Replace with your actual API key or set in .env
+    model_config = SettingsConfigDict(env_file="C:\\ML_Projects\\DigiSaathi\\backend\\.env", extra="ignore")
+
 settings = Settings()
