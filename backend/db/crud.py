@@ -1,16 +1,22 @@
 from sqlalchemy.orm import Session
-from backend.models.document import Document  # Ensure this is the SQLAlchemy model
-from backend.app.schemas.document import DocumentCreate
 from backend.models.user import User
+from backend.models.document import Document
+from backend.models.chat_message import ChatMessage
 from backend.app.schemas.user import UserCreate
+from backend.app.schemas.document import DocumentCreate
+from backend.app.schemas.chat_message import ChatMessageCreateDB
 from backend.app.core.security import get_password_hash
 
 
+# --- User CRUD Functions ---
+
 def get_user_by_email(db: Session, email: str) -> User | None:
+    """Fetches a user from the database by their email address."""
     return db.query(User).filter(User.email == email).first()
 
 
 def create_user(db: Session, user: UserCreate) -> User:
+    """Creates a new user in the database."""
     hashed_password = get_password_hash(user.password)
     db_user = User(
         email=user.email,
@@ -22,13 +28,55 @@ def create_user(db: Session, user: UserCreate) -> User:
     db.refresh(db_user)
     return db_user
 
-# ------------------------- doc crud functions -------------------------
+
+# --- Document CRUD Functions ---
 
 def create_user_document(db: Session, doc: DocumentCreate, owner_id: int) -> Document:
+    """Creates a new document in the database and associates it with a user."""
     db_document = Document(**doc.model_dump(), owner_id=owner_id)
     db.add(db_document)
     db.commit()
     db.refresh(db_document)
     return db_document
+
+
 def get_user_documents(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> list[Document]:
+    """Retrieves a list of documents for a specific user."""
     return db.query(Document).filter(Document.owner_id == user_id).offset(skip).limit(limit).all()
+
+
+# --- Chat Message CRUD Functions ---
+
+def create_chat_message(db: Session, msg: ChatMessageCreateDB, owner_id: int) -> ChatMessage:
+    """
+    Creates a new chat message in the database for a user.
+
+    Args:
+        db: The database session.
+        msg: The chat message creation data.
+        owner_id: The ID of the user who sent or received the message.
+
+    Returns:
+        The newly created ChatMessage object.
+    """
+    db_message = ChatMessage(**msg.model_dump(), owner_id=owner_id)
+    db.add(db_message)
+    db.commit()
+    db.refresh(db_message)
+    return db_message
+
+def get_user_chat_history(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> list[ChatMessage]:
+    """
+    Retrieves the chat history for a specific user.
+
+    Args:
+        db: The database session.
+        user_id: The ID of the user whose chat history to retrieve.
+        skip: The number of records to skip (for pagination).
+        limit: The maximum number of records to return.
+
+    Returns:
+        A list of ChatMessage objects.
+    """
+    return db.query(ChatMessage).filter(ChatMessage.owner_id == user_id).order_by(ChatMessage.timestamp.asc()).offset(skip).limit(limit).all()
+

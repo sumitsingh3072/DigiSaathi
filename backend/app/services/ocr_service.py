@@ -16,8 +16,13 @@ async def extract_text_from_image(file: UploadFile) -> str:
         A string containing the extracted text.
     """
     try:
-        # Read the file content into memory
-        image_data = await file.read()
+        # Handle UploadFile or bytes input
+        if isinstance(file, UploadFile):
+            image_data = await file.read()
+        elif isinstance(file, (bytes, bytearray)):
+            image_data = file
+        else:
+            return "Invalid file type. Expected an UploadFile or bytes."
         
         # Open the image from the in-memory bytes
         image = Image.open(io.BytesIO(image_data))
