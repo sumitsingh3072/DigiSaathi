@@ -1,4 +1,7 @@
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
+from backend.app.schemas.transactions import TransactionCreate
+from backend.models.transaction import Transaction
 from backend.models.user import User
 from backend.models.document import Document
 from backend.models.chat_message import ChatMessage
@@ -79,4 +82,43 @@ def get_user_chat_history(db: Session, user_id: int, skip: int = 0, limit: int =
         A list of ChatMessage objects.
     """
     return db.query(ChatMessage).filter(ChatMessage.owner_id == user_id).order_by(ChatMessage.timestamp.asc()).offset(skip).limit(limit).all()
+
+# --- Transaction CRUD Functions ---
+
+# --- Transaction CRUD Functions ---
+
+def create_user_transaction(db: Session, transaction: TransactionCreate, owner_id: int) -> Transaction:
+    """
+    Creates a new transaction in the database and associates it with a user.
+
+    Args:
+        db: The database session.
+        transaction: The transaction creation data.
+        owner_id: The ID of the user who owns this transaction.
+
+    Returns:
+        The newly created Transaction object.
+    """
+    db_transaction = Transaction(**transaction.model_dump(), owner_id=owner_id)
+    db.add(db_transaction)
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+
+
+def get_user_transactions(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> list[Transaction]:
+    """
+    Retrieves a list of transactions for a specific user.
+
+    Args:
+        db: The database session.
+        user_id: The ID of the user whose transactions to retrieve.
+        skip: The number of records to skip (for pagination).
+        limit: The maximum number of records to return.
+
+    Returns:
+        A list of Transaction objects.
+    """
+    return db.query(Transaction).filter(Transaction.owner_id == user_id).order_by(desc(Transaction.transaction_date)).offset(skip).limit(limit).all()
+
 

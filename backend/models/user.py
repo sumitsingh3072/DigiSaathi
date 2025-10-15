@@ -15,3 +15,4 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     documents = relationship("Document", back_populates="owner", cascade="all, delete-orphan")
     chat_messages = relationship("ChatMessage", back_populates="owner", cascade="all, delete-orphan")
+    transactions = relationship("Transaction", back_populates="owner", cascade="all, delete-orphan")
