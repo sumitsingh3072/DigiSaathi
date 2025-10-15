@@ -18,7 +18,7 @@ async def upload_image_for_ocr(
     current_user: UserModel = Depends(deps.get_current_user)
 ):
     contents = await file.read()
-    extracted_text = await extract_text_from_image(contents) #type: ignore
+    extracted_text = extract_text_from_image(contents) #type: ignore
 
     # 2. Prepare the document data for the database
     doc_in = DocumentCreate(
