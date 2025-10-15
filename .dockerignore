@@ -1,0 +1,36 @@
+# Ignore the Python virtual environment
+backend/venv
+venv
+
+# Ignore Python bytecode files
+**/*.pyc
+**/__pycache__
+
+# Ignore local environment files - secrets should be passed in at runtime
+.env*
+
+# Ignore Git directory
+.git
+.gitignore
+
+# Ignore Docker files from being copied into the image
+Dockerfile
+.dockerignore
+```
+
+### How to Use These Files
+
+With these two files, your application is now fully containerized.
+
+1.  **Build the Image:** From your project root (`C:\ML_Projects\DigiSaathi`), you can build the Docker image by running:
+    ```bash
+    docker build -t digisaathi-backend .
+    ```
+2.  **Run the Container:** You can run it locally, passing in your secret environment variables:
+    ```bash
+    docker run -p 8000:8000 \
+      -e DATABASE_URL="your_neondb_connection_string" \
+      -e GEMINI_API_KEY="your_gemini_key" \
+      -e SECRET_KEY="your_secret_key" \
+      digisaathi-backend
+    

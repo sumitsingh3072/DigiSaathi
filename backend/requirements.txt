@@ -14,6 +14,7 @@ spacy
 genai
 pillow
 sqlalchemy
+langchain_google_genai
 
 # Database
 psycopg2-binary  # For PostgreSQL
