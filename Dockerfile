@@ -11,5 +11,5 @@ RUN pip install --no-cache-dir --upgrade pip -r requirements.txt
 COPY ./backend /app/backend
 EXPOSE 8000
 
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "backend.main:app", "-b", "0.0.0.0:8000"]
+CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "backend.main:app", "-b", "0.0.0.0:8000"]
 
