@@ -1,4 +1,4 @@
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from backend.app.schemas.transactions import TransactionCreate
 from backend.models.transaction import Transaction
@@ -9,7 +9,8 @@ from backend.app.schemas.user import UserCreate
 from backend.app.schemas.document import DocumentCreate
 from backend.app.schemas.chat_message import ChatMessageCreateDB
 from backend.app.core.security import get_password_hash
-
+from datetime import datetime
+from decimal import Decimal
 
 # --- User CRUD Functions ---
 
@@ -121,4 +122,45 @@ def get_user_transactions(db: Session, user_id: int, skip: int = 0, limit: int =
     """
     return db.query(Transaction).filter(Transaction.owner_id == user_id).order_by(desc(Transaction.transaction_date)).offset(skip).limit(limit).all()
 
+
+# --- Dashboard CRUD Functions ---
+
+def get_monthly_spending_summary(db: Session, user_id: int) -> dict:
+    """
+    Calculates the total spending and spending per category for the current month for a given user.
+
+    Args:
+        db: The database session.
+        user_id: The ID of the user to summarize.
+
+    Returns:
+        A dictionary containing the total spending and a breakdown by category.
+    """
+    today = datetime.utcnow()
+    
+    # Calculate total spending for the current month
+    total_spending = db.query(func.sum(Transaction.amount)).filter(
+        Transaction.owner_id == user_id,
+        func.extract('year', Transaction.transaction_date) == today.year,
+        func.extract('month', Transaction.transaction_date) == today.month
+    ).scalar() or Decimal('0.00')
+
+    # Calculate spending by category for the current month
+    spending_by_category_query = db.query(
+        Transaction.category,
+        func.sum(Transaction.amount).label("total")
+    ).filter(
+        Transaction.owner_id == user_id,
+        func.extract('year', Transaction.transaction_date) == today.year,
+        func.extract('month', Transaction.transaction_date) == today.month
+    ).group_by(Transaction.category).all()
+
+    spending_by_category = {
+        category: total for category, total in spending_by_category_query
+    }
+
+    return {
+        "total_spending": total_spending,
+        "spending_by_category": spending_by_category
+    }
 
