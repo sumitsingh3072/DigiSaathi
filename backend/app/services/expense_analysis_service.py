@@ -18,9 +18,9 @@ def categorize_expense_and_create_transaction(
         A TransactionCreate schema object ready to be saved, or None if data is invalid.
     """
     vendor = extracted_data.get("vendor_name")
-    amount_str = extracted_data.get("total_amount")
+    amount_value = extracted_data.get("total_amount") # Renamed for clarity
 
-    if not vendor or not amount_str:
+    if not vendor or not amount_value:
         logging.warning("Missing vendor name or total amount for expense analysis.")
         return None
 
@@ -50,11 +50,12 @@ def categorize_expense_and_create_transaction(
         
         category_result = json.loads(ai_response_str)
         category = category_result.get("category", "Other")
+        amount_str = str(amount_value)
+        cleaned_amount = amount_str.replace(",", "")
 
-        # Create a transaction object with the categorized data
         transaction_data = TransactionCreate(
             description=f"Payment to {vendor}",
-            amount=Decimal(amount_str.replace(",", "")), # Handle commas in amounts
+            amount=Decimal(cleaned_amount),
             category=category,
             vendor_name=vendor
         )
@@ -63,3 +64,4 @@ def categorize_expense_and_create_transaction(
     except (json.JSONDecodeError, ValueError) as e:
         logging.error(f"Error processing expense categorization response: {e}")
         return None
+
