@@ -192,13 +192,13 @@ export default function HeroGeometric({
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/education">
+            <Link href="/explore">
               <Button
                 size="lg"
                 variant="outline"
                 className="border-primary/30 hover:bg-primary/5 rounded-full shadow-sm"
               >
-                Learn About Scams
+                Explore Services
               </Button>
             </Link>
           </motion.div>
