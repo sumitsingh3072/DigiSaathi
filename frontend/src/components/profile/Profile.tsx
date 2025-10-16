@@ -31,7 +31,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 // --- Type Definitions ---
 interface Document {
@@ -62,6 +65,9 @@ export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
   // --- Fetch user profile ---
@@ -79,9 +85,16 @@ export default function Profile() {
           headers: authHeaders(token),
         });
         setUser(data);
+        setName(data.full_name);
       } catch (err: any) {
         console.error("Failed to load profile:", err);
-        setError(err.message || "Failed to fetch user profile");
+
+        if (err.message?.includes("401") || err.message?.includes("403")) {
+          clearToken();
+          router.push("/login");
+        } else {
+          setError(err.message || "Failed to fetch user profile");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -91,14 +104,40 @@ export default function Profile() {
   // --- Logout handler ---
   const handleLogout = () => {
     clearToken();
-    router.push("/");
+    router.push("/login");
+  };
+
+  // --- Save profile changes ---
+  const handleSave = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const payload: Record<string, string> = {};
+      if (name.trim()) payload.full_name = name;
+      if (password.trim()) payload.password = password;
+
+      await apiFetch("/api/v1/users/me", {
+        method: "PATCH",
+        headers: authHeaders(token),
+        body: JSON.stringify(payload),
+      });
+
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+      setPassword("");
+      setUser((prev) => (prev ? { ...prev, full_name: name } : prev));
+    } catch (err: any) {
+      console.error("Update failed:", err);
+      toast.error(err.message || "Failed to update profile.");
+    }
   };
 
   if (isLoading) return <ProfileSkeleton />;
 
   if (error) {
     return (
-      <Card className="w-full max-w-lg bg-red-100/30 dark:bg-red-900/30 backdrop-blur-lg shadow-xl border-red-200 dark:border-red-800">
+      <Card className="w-full max-w-lg bg-red-100/30 dark:bg-red-900/30 backdrop-blur-lg shadow-xl border-red-200 dark:border-red-800 mx-auto mt-10">
         <CardHeader>
           <CardTitle className="text-red-800 dark:text-red-300">
             Error
@@ -124,58 +163,104 @@ export default function Profile() {
     .join("");
 
   return (
-    <Card className="w-full max-w-lg bg-white/30 dark:bg-black/30 backdrop-blur-lg shadow-xl border-white/20 dark:border-black/20">
-      <CardHeader className="flex flex-row items-center space-x-4">
-        <Avatar className="h-16 w-16">
-          <AvatarImage
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.full_name}`}
-            alt={user.full_name}
-          />
-          <AvatarFallback>{userInitials}</AvatarFallback>
-        </Avatar>
-        <div className="flex-grow">
-          <CardTitle className="text-2xl text-gray-800 dark:text-gray-100">
-            {user.full_name}
-          </CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-400">
-            {user.email}
-          </CardDescription>
-        </div>
-        <Badge
-          variant={user.is_active ? "default" : "destructive"}
-          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300 dark:border-green-700"
-        >
-          {user.is_active ? "Active" : "Inactive"}
-        </Badge>
-      </CardHeader>
+    <div className="flex items-center justify-center py-10">
+      <Card className="w-full max-w-lg bg-white/30 dark:bg-black/30 backdrop-blur-lg shadow-xl border-white/20 dark:border-black/20">
+        <CardHeader className="flex flex-row items-center space-x-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.full_name}`}
+              alt={user.full_name}
+            />
+            <AvatarFallback>{userInitials}</AvatarFallback>
+          </Avatar>
+          <div className="flex-grow">
+            <CardTitle className="text-2xl text-gray-800 dark:text-gray-100">
+              {user.full_name}
+            </CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              {user.email}
+            </CardDescription>
+          </div>
+          <Badge
+            variant={user.is_active ? "default" : "destructive"}
+            className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300 dark:border-green-700"
+          >
+            {user.is_active ? "Active" : "Inactive"}
+          </Badge>
+        </CardHeader>
 
-      <CardContent>
-        <Tabs defaultValue="transactions">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
+        <CardContent>
+          <Tabs defaultValue="transactions">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="transactions">Transactions</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="transactions" className="mt-4">
-            <TransactionTable transactions={user.transactions} />
-          </TabsContent>
+            <TabsContent value="transactions" className="mt-4">
+              <TransactionTable transactions={user.transactions} />
+            </TabsContent>
 
-          <TabsContent value="documents" className="mt-4">
-            <DocumentList documents={user.documents} />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+            <TabsContent value="documents" className="mt-4">
+              <DocumentList documents={user.documents} />
+            </TabsContent>
 
-      <CardFooter className="flex justify-end">
-        <Button variant="outline" onClick={handleLogout}>
-          Log Out
-        </Button>
-      </CardFooter>
-    </Card>
+            <TabsContent value="edit" className="mt-4 space-y-4">
+              {!isEditing ? (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Edit Profile
+                </Button>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">New Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditing(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave}>Save Changes</Button>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+
+        <CardFooter className="flex justify-end">
+          <Button variant="outline" onClick={handleLogout}>
+            Log Out
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 
-// --- Sub-components for better organization ---
+// --- Transactions Table ---
 const TransactionTable = ({ transactions }: { transactions: Transaction[] }) => (
   <div className="rounded-md border border-white/20 dark:border-black/20 max-h-60 overflow-y-auto">
     <Table>
@@ -199,7 +284,7 @@ const TransactionTable = ({ transactions }: { transactions: Transaction[] }) => 
                     : "text-red-600 dark:text-red-500"
                 }`}
               >
-                {tx.amount.toLocaleString("en-US", {
+                {tx.amount.toLocaleString("en-IN", {
                   style: "currency",
                   currency: "INR",
                 })}
@@ -218,6 +303,7 @@ const TransactionTable = ({ transactions }: { transactions: Transaction[] }) => 
   </div>
 );
 
+// --- Documents List ---
 const DocumentList = ({ documents }: { documents: Document[] }) => (
   <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
     {documents.length > 0 ? (
@@ -227,7 +313,13 @@ const DocumentList = ({ documents }: { documents: Document[] }) => (
           className="flex items-center justify-between p-3 rounded-md border border-white/20 dark:border-black/20 bg-white/20 dark:bg-black/20"
         >
           <p className="text-sm font-medium">{doc.filename}</p>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              window.open(`/api/v1/documents/${doc.id}`, "_blank")
+            }
+          >
             View
           </Button>
         </div>
@@ -238,6 +330,7 @@ const DocumentList = ({ documents }: { documents: Document[] }) => (
   </div>
 );
 
+// --- Skeleton Loading ---
 const ProfileSkeleton = () => (
   <Card className="w-full max-w-lg bg-white/30 dark:bg-black/30 backdrop-blur-lg shadow-xl border-white/20 dark:border-black/20">
     <CardHeader className="flex flex-row items-center space-x-4">
