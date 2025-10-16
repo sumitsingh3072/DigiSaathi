@@ -3,6 +3,18 @@ from backend.app.core.config import settings
 from backend.app.api.api_v1.api import api_router
 from backend.db.session import engine, Base
 from backend.models import user
+import os
+import sys
+from backend.app.core.config import settings
+from backend.app.api.api_v1.api import api_router
+from backend.db.session import engine, Base
+from backend.models import user, document, chat_message, transaction
+from fastapi.middleware.cors import CORSMiddleware
+
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # ------------------ db initialization ----------------------
 
@@ -23,6 +35,21 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     lifespan=lifespan
+)
+
+# ------------------- CORS settings ----------------------
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:8080"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"], # Allows all headers
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
