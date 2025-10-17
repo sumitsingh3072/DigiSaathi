@@ -46,7 +46,7 @@ export default function KycPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/kyc/upload`, {
+      const res = await fetch(`${BASE_URL}/api/v1/ocr/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
