@@ -38,19 +38,20 @@ app = FastAPI(
 )
 
 # ------------------- CORS settings ----------------------
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:8080",
-    "https://digi-saathi-khaki.vercel.app/"
-]
+# origins = [
+#     "http://localhost",
+#     "http://localhost:3000",
+#     "http://localhost:8080",
+#     "https://digi-saathi-khaki.vercel.app/"
+# ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"], # Allows all methods (GET, POST, etc.)
     allow_headers=["*"], # Allows all headers
+     # Allow all subdomains of vercel.app
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
