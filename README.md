@@ -208,15 +208,4 @@ Contributions are welcome! Please follow these steps:
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
----
-
-## 📧 Contact
-
-**Project Owner**: [sumitsingh3072](https://github.com/sumitsingh3072)
-
-**Repository**: [https://github.com/sumitsingh3072/DigiSaathi](https://github.com/sumitsingh3072/DigiSaathi)
-
 ---
