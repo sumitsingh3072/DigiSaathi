@@ -5,10 +5,7 @@ from backend.db.session import engine, Base
 from backend.models import user
 import os
 import sys
-from backend.app.core.config import settings
 from backend.app.api.api_v1.api import api_router
-from backend.db.session import engine, Base
-from backend.models import user, document, chat_message, transaction
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -63,8 +60,4 @@ async def read_root():
     application is running.
     """
     return {"message": f"Welcome to the {settings.PROJECT_NAME} API!"}
-
-# Include the main API router
-# All routes defined in api_router will be prefixed with /api/v1
-app.include_router(api_router, prefix=settings.API_V1_STR)
 
