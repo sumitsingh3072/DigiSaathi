@@ -82,28 +82,7 @@ export default function DocumentAnalysis() {
       const analysis: DocumentAnalysisResult = await res.json();
       setResult(analysis);
 
-      // Step 2: Save document to the backend
-      const uploadRes = await fetch(`${BASE_URL}/api/v1/documents/upload/`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (uploadRes.ok) {
-        toast.success("Document Saved", {
-          description: "The analyzed document was saved successfully.",
-        });
-        setSaved(true);
-      } else {
-        const errData = await uploadRes.json().catch(() => null);
-        toast.warning("Analysis done but saving failed", {
-          description:
-            (errData && errData.detail) ||
-            "The document was analyzed but not stored.",
-        });
-      }
-
-      toast.success("Analysis Complete", {
+      toast.success("Document Analyzed", {
         description: "Your document has been analyzed successfully.",
       });
     } catch (err: any) {

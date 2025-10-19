@@ -67,7 +67,7 @@ export default function ExpenseUpload() {
 
     try {
       // --- Send request to backend ---
-      const res = await fetch(`${BASE_URL}/api/v1/expenses/process-bill`, {
+      const res = await fetch(`${BASE_URL}/api/v1/expense/process-bill`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

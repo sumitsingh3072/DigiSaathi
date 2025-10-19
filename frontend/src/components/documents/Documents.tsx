@@ -1,16 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch, authHeaders } from "@/lib/api";
 import { getToken, clearToken } from "@/utils/auth";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, UploadCloud, Eye } from "lucide-react";
+import { FileText, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 
 interface Document {
   id: number;
@@ -24,11 +22,9 @@ export default function Documents() {
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
   const router = useRouter();
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     const token = getToken();
     if (!token) {
       router.push("/login");
@@ -49,45 +45,13 @@ export default function Documents() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  // --- Upload Document Handler ---
-  const handleUpload = async () => {
-    if (!file) {
-      toast.error("Please select a file to upload.");
-      return;
-    }
 
-    const token = getToken();
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      await apiFetch("/api/v1/documents/upload/", {
-        method: "POST",
-        headers: authHeaders(token), // Don't set content-type manually when sending FormData
-        body: formData,
-      });
-
-      toast.success("File uploaded successfully!");
-      setFile(null);
-      await fetchDocuments();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload document.");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   useEffect(() => {
     fetchDocuments();
-  }, []);
+  }, [fetchDocuments]);
 
   // --- Loading UI ---
   if (loading)
@@ -112,34 +76,12 @@ export default function Documents() {
 
   return (
     <div className="min-h-screen px-6 py-10">
-      {/* --- Upload Section --- */}
-      <Card className="mb-8 bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20">
-        <CardHeader>
-          <CardTitle className="text-emerald-400 flex items-center gap-2">
-            <UploadCloud className="w-5 h-5" /> Upload New Document
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row gap-3">
-          <Input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="flex-1"
-          />
-          <Button
-            disabled={!file || uploading}
-            onClick={handleUpload}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            {uploading ? "Uploading..." : "Upload"}
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* --- Document List --- */}
       {docs.length === 0 ? (
-        <p className="text-center text-muted-foreground">
-          No documents found. Upload or sync your documents to get started.
-        </p>
+        <div className="text-center text-muted-foreground">
+          <p className="mb-2">No documents found.</p>
+          <p className="text-sm">Use the Document Text Extraction feature to add new documents.</p>
+        </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {docs.map((doc) => (
