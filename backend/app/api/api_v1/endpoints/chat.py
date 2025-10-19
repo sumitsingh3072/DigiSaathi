@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from backend.app.services import agent_service 
+
 from backend.app.schemas.chat_message import ChatMessageCreateDB
 from backend.app.schemas.chat import ChatMessageResponse, ChatMessageCreate
 from backend.app.services.chat_service import generate_gemini_response
@@ -23,6 +23,7 @@ def process_chat_message(
     Processes a chat message using the new LangChain agent, which can use tools.
     Saves the user's message and the agent's final response to the database.
     """
+    from backend.app.services import agent_service 
     # 1. Save the user's message to the database
     user_message_to_save = ChatMessageCreateDB(message=chat_in.message, is_from_user=True)
     crud.create_chat_message(db=db, msg=user_message_to_save, owner_id=current_user.id)
